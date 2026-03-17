@@ -50,14 +50,24 @@ def read_auth_events():
 
     print(f"\nSaved {count} events to {OUTPUT_FILE}")
     print(f"\nSummary:")
-    print(
-        f"  LOGIN_SUCCESS:        {sum(1 for e in open(OUTPUT_FILE) if 'LOGIN_SUCCESS' in e)}")
-    print(
-        f"  LOGIN_FAILED:         {sum(1 for e in open(OUTPUT_FILE) if 'LOGIN_FAILED' in e)}")
-    print(
-        f"  WORKSTATION_LOCKED:   {sum(1 for e in open(OUTPUT_FILE) if 'WORKSTATION_LOCKED' in e)}")
-    print(
-        f"  WORKSTATION_UNLOCKED: {sum(1 for e in open(OUTPUT_FILE) if 'WORKSTATION_UNLOCKED' in e)}")
-
+    s,fa,w,u=0,0,0,0
+    for e in open(OUTPUT_FILE):
+        if 'LOGIN_SUCCESS' in e:
+            s= s+1
+    print(f"LOGIN_SUCCESS: {s}")
+    for e in open(OUTPUT_FILE):
+        if 'LOGIN_FAILED' in e:
+            fa= fa+1
+    print(f"LOGIN_FAILED: {fa}")
+    for e in open(OUTPUT_FILE):        
+        if 'WORKSTATION_LOCKED' in e:
+            w= w+1
+    print(f"WORKSTATION_LOCKED: {w}")
+    for e in open(OUTPUT_FILE):        
+        if 'WORKSTATION_UNLOCKED' in e:
+            u= u+1
+    print(f"WORKSTATION_UNLOCKED: {u}")
+    if fa >= 3:
+        print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
 
 read_auth_events()
