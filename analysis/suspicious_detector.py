@@ -10,7 +10,7 @@ def detect_failed_logins():
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         for line in f:
             record = json.loads(line)
-            if record["event_type"] == "FAILED":
+            if record["event_type"] == "LOGIN_FAILED":
                 failed.append(record)
 
     if failed:
@@ -19,5 +19,8 @@ def detect_failed_logins():
             print(f"  {event['timestamp']}  |  EventID: {event['event_id']}")
     else:
         print("✓  No failed login attempts found.")
+    if len(failed) >=3:
+            print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
+
 
 detect_failed_logins()
