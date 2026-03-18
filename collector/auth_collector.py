@@ -1,10 +1,9 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import win32evtlog
 import json
-from pathlib import Path
-
-OUTPUT_FILE = Path(__file__).resolve().parent.parent / \
-    "logs" / "raw_logs" / "auth_events.jsonl"
-
+from config.settings import AUTH_LOG
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -25,7 +24,7 @@ def read_auth_events():
 
     count = 0
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    with open(AUTH_LOG, "w", encoding="utf-8") as f:
         while True:
             events = win32evtlog.ReadEventLog(hand, flags, 0)
             if not events:
@@ -48,22 +47,22 @@ def read_auth_events():
 
     win32evtlog.CloseEventLog(hand)
 
-    print(f"\nSaved {count} events to {OUTPUT_FILE}")
+    print(f"\nSaved {count} events to {AUTH_LOG}")
     print(f"\nSummary:")
     s,fa,w,u=0,0,0,0
-    for e in open(OUTPUT_FILE):
+    for e in open(AUTH_LOG):
         if 'LOGIN_SUCCESS' in e:
             s= s+1
     print(f"LOGIN_SUCCESS: {s}")
-    for e in open(OUTPUT_FILE):
+    for e in open(AUTH_LOG):
         if 'LOGIN_FAILED' in e:
             fa= fa+1
     print(f"LOGIN_FAILED: {fa}")
-    for e in open(OUTPUT_FILE):        
+    for e in open(AUTH_LOG):        
         if 'WORKSTATION_LOCKED' in e:
             w= w+1
     print(f"WORKSTATION_LOCKED: {w}")
-    for e in open(OUTPUT_FILE):        
+    for e in open(AUTH_LOG):        
         if 'WORKSTATION_UNLOCKED' in e:
             u= u+1
     print(f"WORKSTATION_UNLOCKED: {u}")

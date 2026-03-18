@@ -1,13 +1,14 @@
-import json
+import sys
 from pathlib import Path
-
-INPUT_FILE = Path(__file__).resolve().parent.parent / "logs" / "raw_logs" / "auth_events.jsonl"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import json
+from config.settings import AUTH_LOG
 
 def detect_failed_logins():
     print("Analysing auth events...\n")
 
     failed = []
-    with open(INPUT_FILE, "r", encoding="utf-8") as f:
+    with open(AUTH_LOG, "r", encoding="utf-8") as f:
         for line in f:
             record = json.loads(line)
             if record["event_type"] == "LOGIN_FAILED":
