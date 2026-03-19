@@ -40,9 +40,9 @@ def read_auth_events():
                     f.write(json.dumps(record) + "\n")
                     print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
                     count += 1
-                    if count >= 100:
+                    if count >= 500:
                         break
-            if count >= 100:
+            if count >= 500:
                 break
 
     win32evtlog.CloseEventLog(hand)
