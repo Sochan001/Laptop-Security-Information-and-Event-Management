@@ -12,7 +12,6 @@ EVENT_MAP = {
     4801: "WORKSTATION_UNLOCKED",
 }
 
-
 def read_auth_events():
     server = None
     log_type = "Security"
@@ -36,9 +35,10 @@ def read_auth_events():
                         "timestamp":  str(event.TimeGenerated),
                         "event_type": EVENT_MAP[event_id],
                         "event_id":   event_id,
+                        "user": event.StringInserts[5] if event.StringInserts and len(event.StringInserts) > 5 else "Unknown"
                     }
                     f.write(json.dumps(record) + "\n")
-                    print(f"{record['timestamp']}  |  {record['event_type']}")
+                    print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
                     count += 1
                     if count >= 100:
                         break
