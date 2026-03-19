@@ -17,7 +17,7 @@ def detect_failed_logins():
     if failed:
         print(f"⚠  Found {len(failed)} failed login attempts:\n")
         for event in failed:
-            print(f"  {event['timestamp']}  |  EventID: {event['event_id']}")
+            print(f"  {event['timestamp']}  |  EventID: {event['event_id']} | User: {event['user']}")
     else:
         print("✓  No failed login attempts found.")
     if len(failed) >=3:
