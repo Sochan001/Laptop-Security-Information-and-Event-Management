@@ -3,9 +3,8 @@ import cv2
 from datetime import datetime
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from config.settings import PHOTOS_DIR
 
-PHOTOS_DIR = Path(__file__).resolve().parent.parent / "logs" / "Photos"
-PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
 def collect_camera_events():
     print("Collecting camera events...\n")
     cap = cv2.VideoCapture(0)
