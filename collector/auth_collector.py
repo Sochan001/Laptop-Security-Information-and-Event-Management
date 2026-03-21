@@ -4,6 +4,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import win32evtlog
 import json
 from config.settings import AUTH_LOG
+from datetime import datetime, timedelta
 from collector.camera_collector import capture_photo
 # Events which are important
 EVENT_MAP = {
@@ -39,9 +40,10 @@ def read_auth_events():
                         "user": event.StringInserts[5] if event.StringInserts and len(event.StringInserts) > 5 else "Unknown"
                     }
                     f.write(json.dumps(record) + "\n")
-                    if EVENT_MAP[event_id]=="WORKSTATION_UNLOCKED":
+                    event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+                    if EVENT_MAP[event_id]=="WORKSTATION_UNLOCKED" and datetime.now() - event_time < timedelta(minutes=2):
                         capture_photo("Suspicious_UNLOCKED")
-                    if EVENT_MAP[event_id]=="LOGIN_FAILED":
+                    if EVENT_MAP[event_id]=="LOGIN_FAILED" and datetime.now() - event_time < timedelta(minutes=2):
                         capture_photo("Suspicious_LOGIN_FAILED")
                     print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
                     count += 1
@@ -49,7 +51,6 @@ def read_auth_events():
                         break
             if count >= 500:
                 break
-
     win32evtlog.CloseEventLog(hand)
 
     print(f"\nSaved {count} events to {AUTH_LOG}")
