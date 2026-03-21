@@ -20,4 +20,3 @@ def capture_photo(reason):
     # By using cap.read()[1], we directly access the captured image without checking the return value.
     cap.release()
 
-capture_photo("Manual capture")
