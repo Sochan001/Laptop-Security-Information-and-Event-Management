@@ -44,5 +44,10 @@ def read_auth_events():
     win32evtlog.CloseEventLog(hand)
     return records
 
-
-read_auth_events()
+def save_events(records):
+    with open(AUTH_LOG, "w", encoding="utf-8") as f:
+        for record in records:
+            f.write(json.dumps(record) + "\n")
+    print(f"Saved {len(records)} events to {AUTH_LOG}")
+records = read_auth_events()
+save_events(records)
