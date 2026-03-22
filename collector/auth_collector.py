@@ -1,11 +1,11 @@
-from collector.camera_collector import capture_photo
-from datetime import datetime, timedelta
-from config.settings import AUTH_LOG
 import json
 import win32evtlog
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from collector.camera_collector import capture_photo
+from datetime import datetime, timedelta
+from config.settings import AUTH_LOG
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -68,7 +68,16 @@ def summary(records):
     print(f"WORKSTATION_UNLOCKED: {u}")
     if fa >= 3:
         print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
- 
+def check_and_capture(records):
+    for record in records:
+        event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+        if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=2):
+            capture_photo("Suspicious_UNLOCKED")
+        if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
+            capture_photo("Suspicious_LOGIN_FAILED")
+        print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
+
 records = read_auth_events()
 save_events(records)
+check_and_capture(records)
 summary(records)
