@@ -49,5 +49,26 @@ def save_events(records):
         for record in records:
             f.write(json.dumps(record) + "\n")
     print(f"Saved {len(records)} events to {AUTH_LOG}")
+
+def summary(records):
+    print(f"\nSummary:")
+    s, fa, w, u = 0, 0, 0, 0
+    for record in records:
+        if record["event_type"] == "LOGIN_SUCCESS":
+            s += 1
+        elif record["event_type"] == "LOGIN_FAILED":
+            fa += 1
+        elif record["event_type"] == "WORKSTATION_LOCKED":
+            w += 1
+        elif record["event_type"] == "WORKSTATION_UNLOCKED":
+            u += 1
+    print(f"LOGIN_SUCCESS: {s}")
+    print(f"LOGIN_FAILED: {fa}")
+    print(f"WORKSTATION_LOCKED: {w}")
+    print(f"WORKSTATION_UNLOCKED: {u}")
+    if fa >= 3:
+        print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
+ 
 records = read_auth_events()
 save_events(records)
+summary(records)
