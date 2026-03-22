@@ -1,6 +1,7 @@
 import json
 import win32evtlog
 import sys
+import time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from collector.camera_collector import capture_photo
@@ -76,8 +77,15 @@ def check_and_capture(records):
         if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
             capture_photo("Suspicious_LOGIN_FAILED")
         print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
+def run_monitor(): 
+    try:   
+        while True:
+            records = read_auth_events()
+            save_events(records)
+            check_and_capture(records)
+            summary(records)
+            time.sleep(60)  # Check every minute
+    except KeyboardInterrupt:
+        print("\nStopping auth monitor...")
 
-records = read_auth_events()
-save_events(records)
-check_and_capture(records)
-summary(records)
+run_monitor()
