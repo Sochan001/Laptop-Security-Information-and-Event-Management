@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from collector.camera_collector import capture_photo
 from datetime import datetime, timedelta
 from config.settings import AUTH_LOG
+from collector.app_collector import get_running_apps
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -73,8 +74,12 @@ def check_and_capture(records):
     for record in records:
         event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
         if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=2):
+            apps=get_running_apps()
+            print(f"Running apps at {record['timestamp']}: {apps}")
             capture_photo("Suspicious_UNLOCKED")
         if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
+            apps=get_running_apps()
+            print(f"running apps at {record['timestamp']}: {apps}")
             capture_photo("Suspicious_LOGIN_FAILED")
         print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
 def run_monitor(): 
