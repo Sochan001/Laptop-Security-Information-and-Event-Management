@@ -10,3 +10,4 @@ PROCESSED_DIR = LOG_DIR / "processed"
 AUTH_LOG = RAW_LOG_DIR / "auth_events.jsonl"
 PHOTOS_DIR = LOG_DIR / "Photos"
 PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
+APP_LOG= RAW_LOG_DIR / "running_apps.jsonl"
