@@ -1,14 +1,15 @@
+import sys
 import json
 import win32evtlog
-import sys
 import time
+import win32event
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from collector.camera_collector import capture_photo
-from datetime import datetime, timedelta
-from config.settings import AUTH_LOG
-from config.settings import APP_LOG
 from collector.app_collector import get_running_apps
+from config.settings import APP_LOG
+from config.settings import AUTH_LOG
+from datetime import datetime, timedelta
+from collector.camera_collector import capture_photo
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -26,7 +27,7 @@ def read_auth_events():
     flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
 
     print("Reading auth events...\n")
-    c=0
+    c = 0
     records = []
 
     while True:
@@ -43,15 +44,17 @@ def read_auth_events():
                     "user": event.StringInserts[5] if event.StringInserts and len(event.StringInserts) > 5 else "Unknown"
                 }
                 records.append(record)
-                c+=1
+                c += 1
     win32evtlog.CloseEventLog(hand)
     return records
+
 
 def save_events(records):
     with open(AUTH_LOG, "w", encoding="utf-8") as f:
         for record in records:
             f.write(json.dumps(record) + "\n")
     print(f"Saved {len(records)} events to {AUTH_LOG}")
+
 
 def summary(records):
     print(f"\nSummary:")
@@ -71,22 +74,30 @@ def summary(records):
     print(f"WORKSTATION_UNLOCKED: {u}")
     if fa >= 3:
         print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
+
+
 def check_and_capture(records):
     for record in records:
-        print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
-        event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+        print(
+            f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
+        event_time = datetime.strptime(
+            record["timestamp"], "%Y-%m-%d %H:%M:%S")
         if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=2):
             apps = get_running_apps()
             with open(APP_LOG, "a", encoding="utf-8") as f:
-                f.write(json.dumps({"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
+                f.write(json.dumps(
+                    {"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
             capture_photo("Suspicious_UNLOCKED")
         if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
             apps = get_running_apps()
             with open(APP_LOG, "a", encoding="utf-8") as f:
-                f.write(json.dumps({"timestamp": record["timestamp"], "trigger": "LOGIN_FAILED", "apps": list(apps)}) + "\n")
+                f.write(json.dumps(
+                    {"timestamp": record["timestamp"], "trigger": "LOGIN_FAILED", "apps": list(apps)}) + "\n")
             capture_photo("Suspicious_LOGIN_FAILED")
-def run_monitor(): 
-    try:   
+
+
+def run_monitor():
+    try:
         while True:
             records = read_auth_events()
             save_events(records)
@@ -96,4 +107,19 @@ def run_monitor():
     except KeyboardInterrupt:
         print("\nStopping auth monitor...")
 
-run_monitor()
+
+def watch_events():
+    event_handle = win32event.CreateEvent(None, 0, 0, None)
+    log_handle = win32evtlog.OpenEventLog(None, "Security")
+    win32evtlog.NotifyChangeEventLog(log_handle, event_handle)
+    while True:
+        try: 
+            win32event.WaitForSingleObject(event_handle, win32event.INFINITE)
+            records = read_auth_events()
+            save_events(records)
+            check_and_capture(records)
+        except KeyboardInterrupt:
+            print("\nStopping auth monitor...")
+            break
+
+watch_events()
