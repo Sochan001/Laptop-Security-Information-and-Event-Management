@@ -296,3 +296,80 @@ class SIEMDashboard:
             font=("Consolas", 9), relief="flat",
             cursor="hand2", pady=4,
         ).pack(anchor="e", padx=16, pady=(0, 12))
+
+    # ==============Actions =========================================================
+
+    def refresh_data(self):
+        counts = load_auth_counts()
+        for key, var in self.stat_vars.items():
+            var.set(str(counts[key]))
+        draw_pie(self.pie_canvas, counts)
+        alerts = load_alerts()
+        self.alert_text.config(text="\n".join(alerts))
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.last_scan_label.config(text=f"Last scan: {now}")
+
+    def show_dashboard(self):
+        self.refresh_data()
+
+    def show_report(self):
+        import io
+        from contextlib import redirect_stdout
+        from reports.report_generator import generate_report
+
+        popup = tk.Toplevel(self.root)
+        popup.title("Weekly Report")
+        popup.geometry("600x400")
+        popup.configure(bg=BG_DARK)
+
+        text = tk.Text(
+            popup, bg=BG_CARD, fg=TEXT_PRIMARY,
+            font=FONT_MONO, padx=12, pady=12, relief="flat",
+        )
+        text.pack(fill="both", expand=True, padx=12, pady=12)
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            generate_report()
+
+        text.insert("1.0", buf.getvalue())
+        text.config(state="disabled")
+
+    def open_photos(self):
+        if PHOTOS_DIR.exists():
+            os.startfile(str(PHOTOS_DIR))
+        else:
+            tk.messagebox.showinfo("Photos", "No photos folder found yet.")
+
+    def toggle_monitor(self):
+        if self._monitor_running:
+            self._monitor_running = False
+            self.scan_btn.config(text="▶  Start Monitor", bg=ACCENT_GREEN)
+        else:
+            self._monitor_running = True
+            self.scan_btn.config(text="⏹  Stop Monitor", bg=ACCENT_RED)
+            self._monitor_thread = threading.Thread(
+                target=self._run_monitor_loop, daemon=True,
+            )
+            self._monitor_thread.start()
+
+    def _run_monitor_loop(self):
+        import time
+        from collector.auth_collector import (
+            read_auth_events, save_events, check_and_capture,
+        )
+        while self._monitor_running:
+            records = read_auth_events()
+            save_events(records)
+            check_and_capture(records)
+            self.root.after(0, self.refresh_data)
+            time.sleep(60)
+
+
+# ==============Entry point =========================================================
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SIEMDashboard(root)
+    root.mainloop()
+
