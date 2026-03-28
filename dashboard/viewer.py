@@ -1,18 +1,38 @@
+import sys
+import json
+import os
+import threading
 import tkinter as tk
+from pathlib import Path
+from datetime import datetime, timedelta
 
-root = tk.Tk()                    
-root.title("Personal SIEM")       
-root.geometry("900x600")         
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-#left sidebar
-sidebar= tk.Frame(root, bg="#0e28ab",width =150)
-sidebar.pack(side="left",fill="y")           
+from config.settings import AUTH_LOG, APP_LOG, PHOTOS_DIR
+from analysis.suspicious_detector import (
+    detect_failed_logins,
+    detect_unusual_login_times,
+    detect_brute_force,
+)
 
-#main content area
-main_content = tk.Frame(root, bg="#1a1a2e")
-main_content.pack(side="right", fill="both", expand=True)
+#=========== Colours ================================================================
+BG_DARK      = "#0d1117"
+BG_SIDEBAR   = "#161b22"
+BG_CARD      = "#1c2128"
+BG_ALERT     = "#161b22"
+ACCENT_BLUE  = "#58a6ff"
+ACCENT_GREEN = "#3fb950"
+ACCENT_RED   = "#f85149"
+ACCENT_AMBER = "#d29922"
+TEXT_PRIMARY = "#e6edf3"
+TEXT_MUTED   = "#8b949e"
+BORDER       = "#30363d"
 
-#bottom alert bar
-alert=tk.Frame(root, bg="#16213e", height=120)
-alert.pack(side="bottom", fill="x")
-root.mainloop()                  
+#==============Fonts ================================================================
+FONT_TITLE   = ("Consolas", 18, "bold")
+FONT_NAV     = ("Consolas", 11)
+FONT_STAT_LG = ("Consolas", 28, "bold")
+FONT_STAT_SM = ("Consolas", 10)
+FONT_MONO    = ("Consolas", 9)
+FONT_ALERT   = ("Consolas", 10)
+
