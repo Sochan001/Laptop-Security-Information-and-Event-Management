@@ -5,11 +5,11 @@ import time
 import win32event
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from collector.app_collector import get_running_apps
-from config.settings import APP_LOG
-from config.settings import AUTH_LOG
-from datetime import datetime, timedelta
 from collector.camera_collector import capture_photo
+from datetime import datetime, timedelta
+from config.settings import AUTH_LOG
+from config.settings import APP_LOG
+from collector.app_collector import get_running_apps
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -76,24 +76,21 @@ def summary(records):
         print("\nALERT: SUSPICIOUS!!! More than 3 failed login attempts detected!")
 
 
-def check_and_capture(records):
-    for record in records:
-        print(
-            f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
-        event_time = datetime.strptime(
-            record["timestamp"], "%Y-%m-%d %H:%M:%S")
-        if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=2):
-            apps = get_running_apps()
-            with open(APP_LOG, "a", encoding="utf-8") as f:
-                f.write(json.dumps(
-                    {"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
-            capture_photo("Suspicious_UNLOCKED")
-        if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
-            apps = get_running_apps()
-            with open(APP_LOG, "a", encoding="utf-8") as f:
-                f.write(json.dumps(
-                    {"timestamp": record["timestamp"], "trigger": "LOGIN_FAILED", "apps": list(apps)}) + "\n")
-            capture_photo("Suspicious_LOGIN_FAILED")
+def check_and_capture(record):
+    print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
+    event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+    if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=2):
+        apps = get_running_apps()
+        with open(APP_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps(
+                {"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
+        capture_photo("Suspicious_UNLOCKED")
+    if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=2):
+        apps = get_running_apps()
+        with open(APP_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps(
+                {"timestamp": record["timestamp"], "trigger": "LOGIN_FAILED", "apps": list(apps)}) + "\n")
+        capture_photo("Suspicious_LOGIN_FAILED")
 
 
 def run_monitor():
@@ -101,9 +98,9 @@ def run_monitor():
         while True:
             records = read_auth_events()
             save_events(records)
-            check_and_capture(records)
+            for record in records:
+                check_and_capture(record)
             summary(records)
-            time.sleep(60)  # Check every minute
     except KeyboardInterrupt:
         print("\nStopping auth monitor...")
 
@@ -112,14 +109,20 @@ def watch_events():
     event_handle = win32event.CreateEvent(None, 0, 0, None)
     log_handle = win32evtlog.OpenEventLog(None, "Security")
     win32evtlog.NotifyChangeEventLog(log_handle, event_handle)
-    while True:
-        try: 
-            win32event.WaitForSingleObject(event_handle, win32event.INFINITE)
+    processed = set()
+
+    try:
+        while True:
+            win32event.WaitForSingleObject(event_handle, 1000)
             records = read_auth_events()
             save_events(records)
-            check_and_capture(records)
-        except KeyboardInterrupt:
-            print("\nStopping auth monitor...")
-            break
+            for record in records:
+                if record["timestamp"] not in processed:
+                    processed.add(record["timestamp"])
+                    check_and_capture(record)
+            summary(records)
+    except KeyboardInterrupt:
+        print("\nStopping auth monitor...")
+
 
 watch_events()
