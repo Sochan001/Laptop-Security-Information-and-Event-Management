@@ -127,3 +127,19 @@ def draw_pie(canvas, counts):
             fill=TEXT_MUTED, font=FONT_MONO,
         )
 
+# ==============Dashboard class =========================================================
+
+class SIEMDashboard:
+
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Personal SIEM")
+        self.root.geometry("1000x640")
+        self.root.configure(bg=BG_DARK)
+        self.root.resizable(True, True)
+
+        self._monitor_running = False
+        self._monitor_thread = None
+
+        self._build_ui()
+        self.refresh_data()
