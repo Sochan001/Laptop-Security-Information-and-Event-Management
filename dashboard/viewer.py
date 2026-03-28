@@ -36,3 +36,31 @@ FONT_STAT_SM = ("Consolas", 10)
 FONT_MONO    = ("Consolas", 9)
 FONT_ALERT   = ("Consolas", 10)
 
+
+#==============Data helpers =========================================================
+def load_auth_counts():
+    counts = {
+        "LOGIN_SUCCESS": 0,
+        "LOGIN_FAILED": 0,
+        "WORKSTATION_LOCKED": 0,
+        "WORKSTATION_UNLOCKED": 0,
+    }
+    one_week_ago = datetime.now() - timedelta(days=7)
+
+    if not AUTH_LOG.exists():
+        return counts
+
+    with open(AUTH_LOG, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+                ts = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+                if ts >= one_week_ago and record["event_type"] in counts:
+                    counts[record["event_type"]] += 1
+            except Exception:
+                pass
+    return counts
+
