@@ -1,9 +1,3 @@
-from analysis.suspicious_detector import (
-    detect_failed_logins,
-    detect_unusual_login_times,
-    detect_brute_force,
-)
-from config.settings import AUTH_LOG, APP_LOG, PHOTOS_DIR
 import sys
 import json
 import os
@@ -14,6 +8,12 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from analysis.suspicious_detector import (
+    detect_failed_logins,
+    detect_unusual_login_times,
+    detect_brute_force,
+)
+from config.settings import AUTH_LOG, APP_LOG, PHOTOS_DIR
 
 # =========== Colours ================================================================
 BG_DARK = "#0d1117"
