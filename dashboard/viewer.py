@@ -81,3 +81,49 @@ def load_alerts():
         alerts.append("✅  No suspicious activity detected")
     return alerts
 
+
+# ==============Pie chart drawn on Canvas =========================================================
+
+def draw_pie(canvas, counts):
+    canvas.delete("all")
+
+    total = sum(counts.values())
+    if total == 0:
+        canvas.create_text(105, 100, text="No data",
+                           fill=TEXT_MUTED, font=FONT_ALERT)
+        return
+
+    colours = [ACCENT_GREEN, ACCENT_RED, ACCENT_AMBER, ACCENT_BLUE]
+    labels = ["Success", "Failed", "Locked", "Unlocked"]
+    values = [
+        counts["LOGIN_SUCCESS"],
+        counts["LOGIN_FAILED"],
+        counts["WORKSTATION_LOCKED"],
+        counts["WORKSTATION_UNLOCKED"],
+    ]
+
+    cx, cy, r = 105, 90, 75
+    start = 0.0
+
+    for i, val in enumerate(values):
+        if val == 0:
+            continue
+        extent = (val / total) * 360
+        canvas.create_arc(
+            cx - r, cy - r, cx + r, cy + r,
+            start=start, extent=extent,
+            fill=colours[i], outline=BG_DARK, width=2,
+        )
+        start += extent
+
+    # Legend
+    for i, (label, colour) in enumerate(zip(labels, colours)):
+        y = 180 + i * 20
+        canvas.create_rectangle(10, y, 22, y + 12,
+                                fill=colour, outline="")
+        canvas.create_text(
+            28, y + 6, anchor="w",
+            text=f"{label}: {values[i]}",
+            fill=TEXT_MUTED, font=FONT_MONO,
+        )
+
