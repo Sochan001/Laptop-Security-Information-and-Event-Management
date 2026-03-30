@@ -21,7 +21,3 @@ def get_running_apps():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return apps
-apps=get_running_apps()
-print("Running applications:")
-for app in apps:
-    print(app)
