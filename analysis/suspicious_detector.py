@@ -38,6 +38,3 @@ def detect_brute_force():
         diff = (t2 - t1).total_seconds()
         if diff <= 300:
             return True
-detect_failed_logins()
-detect_unusual_login_times()
-detect_brute_force()

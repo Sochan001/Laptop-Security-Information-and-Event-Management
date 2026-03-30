@@ -30,7 +30,7 @@ def generate_report():
                     PERSONAL SIEM WEEKLY REPORT
             ======================================
             ||        LOGIN_SUCCESS:        {s}        ||
-            ||        LOGIN_FAILED:         {fa}          ||
+            ||        LOGIN_FAILED:         {fa}         ||
             ||        WORKSTATION_LOCKED:   {w}         ||
             ||        WORKSTATION_UNLOCKED: {u}         ||
             ===========================================""")
@@ -41,7 +41,7 @@ def generate_report():
                ======================================
                     SUSPICIOUS ACTIVITY
             ======================================
-            || Failed Login Attempts: {len(failed) if failed else 0} ||
+            || Failed Login Attempts: {len(failed) if failed else 0}||
             || Unusual Login Times: {"Yes" if unusual else "No"}  ||
             || Brute Force Attack: {"Yes" if brute_force else "No"}  ||
             ======================================
@@ -52,5 +52,3 @@ def generate_report():
             print("\n⚠  ALERT: SUSPICIOUS!!! Unusual login times detected!")
         if brute_force:
             print("\n⚠  ALERT: SUSPICIOUS!!! Potential brute force attack detected!")
-
-generate_report()

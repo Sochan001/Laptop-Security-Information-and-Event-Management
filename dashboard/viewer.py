@@ -210,6 +210,7 @@ class SIEMDashboard:
             ("📊  Dashboard", self.show_dashboard),
             ("📄  Reports",   self.show_report),
             ("📷  Photos",    self.open_photos),
+            ("📋  Running Apps", self.show_running_apps),
         ]
 
         for text, cmd in nav_items:
@@ -340,6 +341,27 @@ class SIEMDashboard:
             os.startfile(str(PHOTOS_DIR))
         else:
             tk.messagebox.showinfo("Photos", "No photos folder found yet.")
+    
+    def show_running_apps(self):
+        from collector.app_collector import get_running_apps
+
+        popup = tk.Toplevel(self.root)
+        popup.title("Running Applications")
+        popup.geometry("400x300")
+        popup.configure(bg=BG_DARK)
+
+        text = tk.Text(
+            popup, bg=BG_CARD, fg=TEXT_PRIMARY,
+            font=FONT_MONO, padx=12, pady=12, relief="flat",
+        )
+        text.pack(fill="both", expand=True, padx=12, pady=12)
+
+        apps = get_running_apps()
+        if apps:
+            text.insert("1.0", "\n".join(apps))
+        else:
+            text.insert("1.0", "No running applications detected.")
+        text.config(state="disabled")
 
     def toggle_monitor(self):
         if self._monitor_running:
@@ -354,16 +376,28 @@ class SIEMDashboard:
             self._monitor_thread.start()
 
     def _run_monitor_loop(self):
-        import time
-        from collector.auth_collector import (
-            read_auth_events, save_events, check_and_capture,
-        )
+        import win32event
+        import win32evtlog
+        from collector.auth_collector import read_auth_events, save_events, check_and_capture
+    
+        event_handle = win32event.CreateEvent(None, 0, 0, None)
+        log_handle = win32evtlog.OpenEventLog(None, "Security")
+        win32evtlog.NotifyChangeEventLog(log_handle, event_handle)
+        processed = set()
+    
         while self._monitor_running:
+            win32event.WaitForSingleObject(event_handle, 1000)
+            if not self._monitor_running:
+                break
             records = read_auth_events()
             save_events(records)
-            check_and_capture(records)
+            for record in records:
+                if record["timestamp"] not in processed:
+                    processed.add(record["timestamp"])
+                    check_and_capture(record)
             self.root.after(0, self.refresh_data)
-            time.sleep(60)
+    
+        win32evtlog.CloseEventLog(log_handle)
 
 
 # ==============Entry point =========================================================
