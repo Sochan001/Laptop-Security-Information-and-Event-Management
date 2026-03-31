@@ -3,3 +3,4 @@ This tool acts as a constantly monitoring application that will monitor and trac
 ```
 logs\Photos
 ```
+and whenever the authorized user logins and checks the file, they can know the details of the unauthorized user and can also know what apps they were using when they logged in.
