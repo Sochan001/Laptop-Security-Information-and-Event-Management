@@ -50,4 +50,49 @@ personal-siem/
 ├── requirements.txt
 └── README.md
 ```
+---
 
+## Windows Event IDs Monitored
+
+| Event ID | Description |
+|----------|-------------|
+| 4624 | Successful login |
+| 4625 | Failed login |
+| 4800 | Workstation locked |
+| 4801 | Workstation unlocked |
+
+---
+
+## Prerequisites
+
+- Windows 10 or 11
+- Python 3.10 or higher
+- Administrator privileges (required to read Windows Security Event Log)
+
+---
+
+## Installation
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/Sochan001/Laptop-Security-Information-and-Event-Management.git
+cd Laptop-Security-Information-and-Event-Management
+```
+
+**2. Create and activate a virtual environment**
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Enable lock/unlock event logging (run once as Administrator)**
+```powershell
+auditpol /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:enable
+```
+
+---
