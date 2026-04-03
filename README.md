@@ -96,3 +96,74 @@ auditpol /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:
 ```
 
 ---
+
+## Usage
+
+**Run the dashboard**
+```bash
+python dashboard/viewer.py
+```
+
+**Run the collector directly (terminal mode)**
+```bash
+python collector/auth_collector.py
+```
+
+**Generate a report manually**
+```bash
+python reports/report_generator.py
+```
+
+---
+
+## Dashboard Guide
+
+| Button | Action |
+|--------|--------|
+| 📊 Dashboard | View live stats and pie chart |
+| 📄 Reports | View weekly security report |
+| 📷 Photos | Open captured photos folder |
+| 📋 Running Apps | View currently running applications |
+| ▶ Start Monitor | Begin real-time event monitoring |
+| ⏹ Stop Monitor | Stop monitoring |
+| ↻ Refresh | Reload data from logs |
+
+---
+
+## Detection Rules
+
+| Rule | Trigger |
+|------|---------|
+| Multiple failed logins | 3 or more failed attempts |
+| Brute force pattern | 3+ failures within 5 minutes |
+| Unusual hour login | Successful login between 00:00 and 05:00 |
+| Photo on unlock | Webcam capture on workstation unlock |
+| Photo on failed login | Webcam capture on failed login attempt |
+
+---
+
+## Future Work & Recommendations
+
+- **System clock tampering detection** — Event ID 4616 flags when someone changes the system clock to avoid detection
+- **Email alerts** — Send an email notification when suspicious activity is detected
+- **Web dashboard** — Replace Tkinter with a Flask web interface accessible from any device on the network
+- **File integrity monitoring** — Detect changes to sensitive folders like Documents and Desktop
+- **Network connection monitoring** — Alert on unknown Wi-Fi networks or VPN changes
+- **Fingerprint vs password distinction** — Differentiate between biometric and password authentication in event logs
+- **Log rotation** — Automatically archive old logs to prevent the log file growing too large
+- **Installer / startup script** — Auto-start the monitor when Windows boots using Task Scheduler
+
+---
+
+## Built With
+
+- [pywin32](https://pypi.org/project/pywin32/) — Windows Event Log access
+- [opencv-python](https://pypi.org/project/opencv-python/) — Webcam photo capture
+- [psutil](https://pypi.org/project/psutil/) — Running process monitoring
+- [tkinter](https://docs.python.org/3/library/tkinter.html) — GUI dashboard (built into Python)
+
+---
+
+## Author
+
+Sochan — built as a hands-on Python learning project
