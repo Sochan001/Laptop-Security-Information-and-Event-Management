@@ -166,4 +166,4 @@ python reports/report_generator.py
 
 ## Author
 
-Sochan — built as a hands-on Python learning project
+Sochan Dangol — built as a hands-on Python learning project
