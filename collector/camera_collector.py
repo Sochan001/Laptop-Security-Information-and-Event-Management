@@ -4,6 +4,8 @@ from datetime import datetime
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import PHOTOS_DIR
+from collector.alert_mailer import send_alert
+    
 
 def capture_photo(reason):
     print("Collecting camera events...\n")
@@ -19,4 +21,4 @@ def capture_photo(reason):
     # As we know cap.read() returns a tuple (ret, frame), where ret is a boolean indicating if the frame was read successfully and frame is the captured image.
     # By using cap.read()[1], we directly access the captured image without checking the return value.
     cap.release()
-
+    send_alert(filename, reason)
