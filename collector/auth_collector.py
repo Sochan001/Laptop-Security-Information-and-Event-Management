@@ -79,13 +79,13 @@ def summary(records):
 def check_and_capture(record):
     print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
     event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
-    if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=5):
+    if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=10):
         apps = get_running_apps()
         with open(APP_LOG, "a", encoding="utf-8") as f:
             f.write(json.dumps(
                 {"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
         capture_photo("Suspicious_UNLOCKED")
-    if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=5):
+    if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=10):
         apps = get_running_apps()
         with open(APP_LOG, "a", encoding="utf-8") as f:
             f.write(json.dumps(
