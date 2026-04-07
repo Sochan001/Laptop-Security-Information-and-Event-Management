@@ -7,6 +7,13 @@ import os
 import smtplib
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 load_dotenv()
 
 

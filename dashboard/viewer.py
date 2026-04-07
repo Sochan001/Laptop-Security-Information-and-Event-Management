@@ -116,7 +116,114 @@ def draw_pie(canvas, counts):
                            text=f"{label}: {values[i]}",
                            fill=TEXT_MUTED, font=FONT_MONO)
 
+class SetupScreen:
+    """First-run setup screen to collect Gmail credentials."""
 
+    def __init__(self, root, on_complete):
+        self.root = root
+        self.on_complete = on_complete  # function to call when setup is done
+
+        self.root.title("Personal SIEM — First Time Setup")
+        self.root.geometry("500x420")
+        self.root.configure(bg=BG_DARK)
+        self.root.resizable(False, False)
+
+        self._build_ui()
+
+    def _build_ui(self):
+        # Title
+        tk.Label(self.root, text="🛡  Personal SIEM",
+                 bg=BG_DARK, fg=ACCENT_BLUE,
+                 font=FONT_TITLE).pack(pady=(30, 4))
+
+        tk.Label(self.root, text="First Time Setup",
+                 bg=BG_DARK, fg=TEXT_MUTED,
+                 font=("Consolas", 10)).pack(pady=(0, 20))
+
+        # Form frame
+        form = tk.Frame(self.root, bg=BG_CARD, padx=24, pady=24)
+        form.pack(fill="x", padx=30)
+
+        # Gmail address
+        tk.Label(form, text="Your Gmail Address",
+                 bg=BG_CARD, fg=TEXT_MUTED,
+                 font=FONT_MONO).pack(anchor="w")
+        self.entry_gmail = tk.Entry(form, bg=BG_DARK, fg=TEXT_PRIMARY,
+                                    font=FONT_MONO, relief="flat",
+                                    insertbackground=TEXT_PRIMARY)
+        self.entry_gmail.pack(fill="x", pady=(4, 16), ipady=6)
+
+        # App password
+        tk.Label(form, text="Gmail App Password  (16 characters)",
+                 bg=BG_CARD, fg=TEXT_MUTED,
+                 font=FONT_MONO).pack(anchor="w")
+        self.entry_password = tk.Entry(form, bg=BG_DARK, fg=TEXT_PRIMARY,
+                                       font=FONT_MONO, relief="flat",
+                                       show="*",
+                                       insertbackground=TEXT_PRIMARY)
+        self.entry_password.pack(fill="x", pady=(4, 16), ipady=6)
+
+        # Recipient email
+        tk.Label(form, text="Send Alerts To (email)",
+                 bg=BG_CARD, fg=TEXT_MUTED,
+                 font=FONT_MONO).pack(anchor="w")
+        self.entry_recipient = tk.Entry(form, bg=BG_DARK, fg=TEXT_PRIMARY,
+                                        font=FONT_MONO, relief="flat",
+                                        insertbackground=TEXT_PRIMARY)
+        self.entry_recipient.pack(fill="x", pady=(4, 4), ipady=6)
+
+        # Error label
+        self.error_label = tk.Label(self.root, text="",
+                                    bg=BG_DARK, fg=ACCENT_RED,
+                                    font=FONT_MONO)
+        self.error_label.pack(pady=(12, 0))
+
+        # Save button
+        tk.Button(self.root, text="Save & Continue →",
+                  command=self._save,
+                  bg=ACCENT_GREEN, fg="#0d1117",
+                  font=("Consolas", 11, "bold"),
+                  relief="flat", cursor="hand2",
+                  pady=10, padx=20).pack(pady=16)
+
+        # Help text
+        tk.Label(self.root,
+                 text="Need help? Google Account → Security → App Passwords",
+                 bg=BG_DARK, fg=TEXT_MUTED,
+                 font=("Consolas", 8)).pack()
+
+    def _save(self):
+        gmail     = self.entry_gmail.get().strip()
+        password  = self.entry_password.get().strip()
+        recipient = self.entry_recipient.get().strip()
+
+        # Basic validation
+        if not gmail or "@" not in gmail:
+            self.error_label.config(text="⚠  Please enter a valid Gmail address.")
+            return
+        if len(password) < 16:
+            self.error_label.config(text="⚠  App password must be 16 characters.")
+            return
+        if not recipient or "@" not in recipient:
+            self.error_label.config(text="⚠  Please enter a valid recipient email.")
+            return
+
+        # Save to .env file
+        if getattr(sys, 'frozen', False):
+            env_path = Path(sys.executable).parent / ".env"
+        else:
+            env_path = Path(__file__).resolve().parent.parent / ".env"
+
+        with open(env_path, "w") as f:
+            f.write(f"GMAIL_ADDRESS={gmail}\n")
+            f.write(f"GMAIL_APP_PASSWORD={password}\n")
+            f.write(f"RECIPIENT_EMAIL={recipient}\n")
+
+        # Clear the window and launch dashboard
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.on_complete(self.root)
 # ======= Dashboard ====================
 class SIEMDashboard:
 
@@ -393,5 +500,20 @@ class SIEMDashboard:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = SIEMDashboard(root)
+
+    # Check if .env exists and has credentials
+    if getattr(sys, 'frozen', False):
+        env_path = Path(sys.executable).parent / ".env"
+    else:
+        env_path = Path(__file__).resolve().parent.parent / ".env"
+
+    def launch_dashboard(root):
+        app = SIEMDashboard(root)
+
+    if env_path.exists() and env_path.stat().st_size > 10:
+        launch_dashboard(root)
+    else:
+        # Show setup screen
+        SetupScreen(root, on_complete=launch_dashboard)
+
     root.mainloop()
