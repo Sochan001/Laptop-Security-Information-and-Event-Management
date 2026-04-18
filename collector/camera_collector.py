@@ -4,6 +4,8 @@ from datetime import datetime
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import PHOTOS_DIR
+from collector.alert_mailer import send_alert
+    
 
 def capture_photo(reason):
     cap = cv2.VideoCapture(0)
