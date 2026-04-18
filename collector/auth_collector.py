@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from config.settings import AUTH_LOG
 from config.settings import APP_LOG
 from collector.app_collector import get_running_apps
+from collector.email_sender import send_alert
 # Events which are important
 EVENT_MAP = {
     4624: "LOGIN_SUCCESS",
@@ -78,19 +79,21 @@ def summary(records):
 
 def check_and_capture(record):
     print(f"{record['timestamp']}  |  {record['event_type']} | {record['user']}")
-    event_time = datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S")
+    event_time = datetime.strptime(record["timestamp"][:19], "%Y-%m-%d %H:%M:%S")
     if record["event_id"] == 4801 and datetime.now() - event_time < timedelta(minutes=10):
         apps = get_running_apps()
         with open(APP_LOG, "a", encoding="utf-8") as f:
             f.write(json.dumps(
                 {"timestamp": record["timestamp"], "trigger": "UNLOCK", "apps": list(apps)}) + "\n")
-        capture_photo("Suspicious_UNLOCKED")
+        photo_path= capture_photo("Suspicious_UNLOCKED")
+        send_alert(photo_path, "Workstation unlocked")
     if record["event_id"] == 4625 and datetime.now() - event_time < timedelta(minutes=10):
         apps = get_running_apps()
         with open(APP_LOG, "a", encoding="utf-8") as f:
             f.write(json.dumps(
                 {"timestamp": record["timestamp"], "trigger": "LOGIN_FAILED", "apps": list(apps)}) + "\n")
-        capture_photo("Suspicious_LOGIN_FAILED")
+        photo_path=capture_photo("Suspicious_LOGIN_FAILED")
+        send_alert(photo_path, "login failed")
 
 
 def run_monitor():
